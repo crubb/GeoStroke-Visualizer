@@ -151,8 +151,8 @@
       card.appendChild(img);
       const links = document.createElement('div'); links.className = 'download-links';
       links.innerHTML = `
-        <a class="button" href="${DATA_PATH_COUNTIES}/${state}/${info.excel}" download>Excel ⬇︎</a>
-        <a class="button" href="${DATA_PATH_COUNTIES}/${state}/${info.pdf}" download>PDF ⬇︎</a>`;
+        <a class="button" href="${DATA_PATH_COUNTIES}/${state}/${info.excel}" download>Excel (single county) ⬇︎</a>
+        <a class="button" href="${DATA_PATH_COUNTIES}/${info.pdf}" download>PDF (all counties) ⬇︎</a>`;
       card.appendChild(links);
       panel.appendChild(card);
     }
@@ -168,8 +168,8 @@
       card.appendChild(img);
       const links = document.createElement('div'); links.className = 'download-links';
       links.innerHTML = `
-        <a class="button" href="${DATA_PATH_STATES}/${info.excel}" download>Excel ⬇︎</a>
-        <a class="button" href="${DATA_PATH_STATES}/${info.pdf}" download>PDF ⬇︎</a>`;
+        <a class="button" href="${DATA_PATH_STATES}/${info.excel}" download>Excel (single state) ⬇︎</a>
+        <a class="button" href="${DATA_PATH_STATES}/${info.pdf}" download>PDF (all states) ⬇︎</a>`;
       card.appendChild(links);
       panel.appendChild(card);
     }
