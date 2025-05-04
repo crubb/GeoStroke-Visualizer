@@ -3,32 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Neuro‑Isochrone Explorer</title>
+  <title>German Neuro-Isochrone Accessibility Explorer</title>
   <link rel="preconnect" href="https://fonts.gstatic.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
   <style>
     * { box-sizing: border-box; }
-    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #f9f9fb; color:#1e293b; }
-    header { background: #0f172a; color: #f1f5f9; padding: 1rem 2rem; display:flex; align-items:center; }
-    header h1 { margin:0; font-size: 1.4rem; }
+    body { font-family: 'Inter', sans-serif; margin: 0; padding: 0; background: #f9f9fb; color: #1e293b; }
+    header { background: #0f172a; color: #f1f5f9; padding: 1rem 2rem; display: flex; align-items: center; }
+    header h1 { margin: 0; font-size: 1.4rem; }
     main { max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
-    .controls { display:flex; gap:1rem; flex-wrap:wrap; }
-    select { padding:0.5rem 0.75rem; border-radius:0.5rem; border:1px solid #cbd5e1; font-size:1rem; }
-    .panel { margin-top:2rem; display:grid; grid-template-columns: repeat(auto-fit,minmax(350px,1fr)); gap:1.5rem; }
-    .card { background:#fff; border-radius:1rem; box-shadow:0 2px 8px rgba(0,0,0,0.05); padding:1rem; display:flex; flex-direction:column; align-items:center; }
-    .card img { max-width:100%; border-radius:0.75rem; }
-    .download-links { margin-top:0.75rem; display:flex; gap:1rem; font-size:0.9rem; }
-    a.button { background:#0f172a; color:#f1f5f9; padding:0.4rem 0.8rem; border-radius:0.4rem; text-decoration:none; transition: background 0.2s; }
-    a.button:hover { background:#334155; }
-    footer { text-align:center; font-size:0.8rem; padding:2rem; color:#64748b; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tabs button { padding: 0.5rem 1rem; border: none; background: #e2e8f0; border-radius: 0.5rem; cursor: pointer; }
+    .tabs button.active { background: #0f172a; color: #f1f5f9; }
+    .controls { display: flex; gap: 1rem; flex-wrap: wrap; margin-bottom: 1rem; }
+    select { padding: 0.5rem 0.75rem; border-radius: 0.5rem; border: 1px solid #cbd5e1; font-size: 1rem; }
+    .panel { display: grid; gap: 1.5rem; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); }
+    .card { background: #fff; border-radius: 1rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); padding: 1rem; display: flex; flex-direction: column; align-items: center; }
+    .card img { max-width: 100%; border-radius: 0.75rem; }
+    .download-links { margin-top: 0.75rem; display: flex; gap: 1rem; font-size: 0.9rem; }
+    a.button { background: #0f172a; color: #f1f5f9; padding: 0.4rem 0.8rem; border-radius: 0.4rem; text-decoration: none; transition: background 0.2s; }
+    a.button:hover { background: #334155; }
+    footer { text-align: center; font-size: 0.8rem; padding: 2rem; color: #64748b; }
   </style>
 </head>
 <body>
   <header>
-    <h1>German Neuro‑Isochrone Accessibility Explorer</h1>
+    <h1>German Neuro-Isochrone Accessibility Explorer</h1>
   </header>
   <main>
-    <section class="controls">
+    <div class="tabs">
+      <button id="tabCounties" class="active">Counties</button>
+      <button id="tabStates">States</button>
+    </div>
+    <section class="controls" id="controlsCounties">
       <div>
         <label for="stateSel">State:</label><br />
         <select id="stateSel"></select>
@@ -38,74 +45,125 @@
         <select id="countySel"></select>
       </div>
     </section>
-
+    <section class="controls" id="controlsStates" style="display: none;">
+      <div>
+        <label for="stateSelStates">State:</label><br />
+        <select id="stateSelStates"></select>
+      </div>
+    </section>
     <section class="panel" id="outputPanel">
-      <p>Select a state/county to view its maps and data …</p>
+      <p>Select a state/county to view its maps and data …</p>
     </section>
   </main>
   <footer>
-    Built with ❤️ + GitHub Pages — data ©2025 Neuro‑Isochrone Project
+    Built with ❤️ + GitHub Pages — data ©2025 Neuro-Isochrone Project
   </footer>
-
   <script>
-  // 🚀 Configuration — path relative to docs/ (GitHub Pages root)
-  const DATA_PATH = 'Results/Counties';
-  const META_JSON = 'meta.json';   // generated mapping file
+    // Paths and metadata files
+    const DATA_PATH_COUNTIES = 'Results/Counties';
+    const META_JSON_COUNTIES = 'meta.json';
+    const DATA_PATH_STATES = 'Results/States';
+    const META_JSON_STATES = 'meta.json';
 
-  const stateSel  = document.getElementById('stateSel');
-  const countySel = document.getElementById('countySel');
-  const panel     = document.getElementById('outputPanel');
+    // UI elements
+    const tabCounties   = document.getElementById('tabCounties');
+    const tabStates     = document.getElementById('tabStates');
+    const controlsCounties = document.getElementById('controlsCounties');
+    const controlsStates   = document.getElementById('controlsStates');
+    const stateSel      = document.getElementById('stateSel');
+    const countySel     = document.getElementById('countySel');
+    const stateSelStates = document.getElementById('stateSelStates');
+    const panel         = document.getElementById('outputPanel');
 
-  let meta = {};
+    let metaCounties = {};
+    let metaStates   = {};
 
-  async function init() {
-    try {
-      const res = await fetch(`${DATA_PATH}/${META_JSON}`);
-      meta = await res.json();
-      populateStates();
-    } catch(err) {
-      panel.innerHTML = `<p style="color:#dc2626">Failed to load metadata: ${err}</p>`;
+    // Initialize
+    tabCounties.addEventListener('click', () => switchView('counties'));
+    tabStates.addEventListener('click', () => switchView('states'));
+    init();
+
+    async function init() {
+      try {
+        const res = await fetch(`${DATA_PATH_COUNTIES}/${META_JSON_COUNTIES}`);
+        metaCounties = await res.json();
+        populateStates(metaCounties, stateSel);
+      } catch(err) {
+        panel.innerHTML = `<p style="color:#dc2626">Failed to load metadata: ${err}</p>`;
+      }
     }
-  }
 
-  function populateStates() {
-    stateSel.innerHTML = '<option value="" disabled selected>Select state…</option>'+
-      Object.keys(meta).sort().map(s => `<option value="${s}">${s}</option>`).join('');
-    stateSel.addEventListener('change', () => {
-      populateCounties(stateSel.value);
-    });
-  }
+    function switchView(view) {
+      // Reset
+      panel.innerHTML = `<p>Select a ${view === 'states' ? 'state' : 'state/county'} to view its maps and data …</p>`;
+      if (view === 'states') {
+        tabStates.classList.add('active'); tabCounties.classList.remove('active');
+        controlsCounties.style.display = 'none'; controlsStates.style.display = '';
+        // Load states metadata if needed
+        if (!Object.keys(metaStates).length) {
+          fetch(`${DATA_PATH_STATES}/${META_JSON_STATES}`)
+            .then(r => r.json())
+            .then(json => {
+              metaStates = json;
+              populateStates(metaStates, stateSelStates);
+            });
+        }
+      } else {
+        tabCounties.classList.add('active'); tabStates.classList.remove('active');
+        controlsStates.style.display = 'none'; controlsCounties.style.display = '';
+      }
+    }
 
-  function populateCounties(state) {
-    const counties = Object.keys(meta[state] || {}).sort();
-    countySel.innerHTML = '<option value="" disabled selected>Select county…</option>'+
-      counties.map(c => `<option value="${c}">${c}</option>`).join('');
-    countySel.onchange = () => render(state, countySel.value);
-  }
+    function populateStates(sourceMeta, sel) {
+      sel.innerHTML = '<option value="" disabled selected>Select state…</option>' +
+        Object.keys(sourceMeta).sort().map(s => `<option value="${s}">${s}</option>`).join('');
+      if (sel === stateSel) {
+        sel.onchange = () => populateCounties(sel.value);
+      } else {
+        sel.onchange = () => renderState(sel.value);
+      }
+    }
 
-  function render(state, county) {
-    const info = meta[state][county];
-    panel.innerHTML = '';
-    if(!info){ panel.textContent = 'No data'; return; }
+    function populateCounties(state) {
+      const counties = Object.keys(metaCounties[state] || {}).sort();
+      countySel.innerHTML = '<option value="" disabled selected>Select county…</option>' +
+        counties.map(c => `<option value="${c}">${c}</option>`).join('');
+      countySel.onchange = () => renderCounty(state, countySel.value);
+    }
 
-    const card = document.createElement('div');
-    card.className = 'card';
-    const img = document.createElement('img');
-    img.src = `${DATA_PATH}/${state}/${info.image}`;
-    img.alt = `${county} isochrone map`;
-    card.appendChild(img);
+    function renderCounty(state, county) {
+      const info = metaCounties[state][county];
+      panel.innerHTML = '';
+      if (!info) { panel.textContent = 'No data'; return; }
+      const card = document.createElement('div'); card.className = 'card';
+      const img  = document.createElement('img');
+      img.src = `${DATA_PATH_COUNTIES}/${state}/${info.image}`;
+      img.alt = `${county} isochrone map`;
+      card.appendChild(img);
+      const links = document.createElement('div'); links.className = 'download-links';
+      links.innerHTML = `
+        <a class="button" href="${DATA_PATH_COUNTIES}/${state}/${info.excel}" download>Excel ⬇︎</a>
+        <a class="button" href="${DATA_PATH_COUNTIES}/${info.pdf}" target="_blank">PDF ⬇︎</a>`;
+      card.appendChild(links);
+      panel.appendChild(card);
+    }
 
-    const links = document.createElement('div');
-    links.className = 'download-links';
-    links.innerHTML = `
-      <a class="button" href="${DATA_PATH}/${state}/${info.excel}" download>Excel ⬇︎</a>
-      <a class="button" href="${DATA_PATH}/${state}/${info.pdf}" target="_blank">PDF ⬇︎</a>`;
-    card.appendChild(links);
-
-    panel.appendChild(card);
-  }
-
-  init();
+    function renderState(state) {
+      const info = metaStates[state];
+      panel.innerHTML = '';
+      if (!info) { panel.textContent = 'No data'; return; }
+      const card = document.createElement('div'); card.className = 'card';
+      const img  = document.createElement('img');
+      img.src = `${DATA_PATH_STATES}/${info.image}`;
+      img.alt = `${state} isochrone map`;
+      card.appendChild(img);
+      const links = document.createElement('div'); links.className = 'download-links';
+      links.innerHTML = `
+        <a class="button" href="${DATA_PATH_STATES}/${info.excel}" download>Excel ⬇︎</a>
+        <a class="button" href="${DATA_PATH_STATES}/${info.pdf}" target="_blank">PDF ⬇︎</a>`;
+      card.appendChild(links);
+      panel.appendChild(card);
+    }
   </script>
 </body>
 </html>
