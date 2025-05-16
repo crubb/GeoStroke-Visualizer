@@ -3,7 +3,9 @@
 This repository hosts an interactive GitHub Pages site for exploring driving-time-based accessibility to stroke care across Germany. In some regions, it may be faster to drive to the nearest hospital rather than the next certified stroke unit once a stroke is suspected. This analysis calculates isochrone maps, driving times, and local differences at both county and state levels.
 
 For a detailed methodology and full results, see:
-Masanneck et al. (2025), "XXX Placeholder", DOI: [XXXX](https://doi.org/XXXX).
+Masanneck et al. (2025), "Optimizing Prehospital Stroke Care: Mapping Stroke Unit Access and Leveraging CT Availability Across GermanGeospatial", DOI: [XXXX](https://doi.org/XXXX).
+
+To access the interactive page directly click [here](https://masannecklab.github.io/GeoStroke-Visualizer/).
 
 ## Repository structure
 
